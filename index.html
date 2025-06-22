@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Project Gantt Chart</title>
+    <title>Construction Project Gantt Chart</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,243 +15,204 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background: #f5f7fa;
+            color: #333;
             min-height: 100vh;
             padding: 20px;
-            color: #333;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
         
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        /* Header styling */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            padding: 15px 25px;
+            background: #2c3e50;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .project-info {
-            flex: 1;
-            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         
         .project-title {
+            font-size: 1.8rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 15px;
         }
         
-        .project-title i {
-            font-size: 2.2rem;
-            color: #1a2a6c;
-        }
-        
-        .project-title h1 {
-            font-size: 1.8rem;
-            color: #1a2a6c;
-            font-weight: 700;
+        .project-id {
+            font-size: 1.2rem;
+            background: #3498db;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
         }
         
         .project-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            display: flex;
+            gap: 20px;
+            font-size: 0.95rem;
         }
         
         .meta-item {
-            background: #f0f7ff;
-            padding: 12px 15px;
-            border-radius: 12px;
-            font-size: 1rem;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid #3498db;
-        }
-        
-        .meta-item h3 {
-            color: #2c3e50;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-        
-        .meta-item .value {
-            font-weight: 700;
-            font-size: 1.3rem;
-            color: #1a2a6c;
-        }
-        
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        
-        .card-header h2 {
-            color: #1a2a6c;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card-header h2 i {
-            color: #3498db;
-        }
-        
-        .card-content {
-            padding: 10px 0;
-        }
-        
-        .gantt-container {
-            grid-column: 1 / -1;
-        }
-        
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            background: #1a2a6c;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .btn:hover {
-            background: #0d1a4a;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        /* Toolbar styling */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .toolbar button, .toolbar select {
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            background: #eef2f7;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .toolbar button:hover, .toolbar select:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
         }
         
-        .btn i {
-            font-size: 1.1rem;
+        .toolbar select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%232c3e50' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 45px;
         }
         
-        .gantt-chart {
+        .toolbar select:hover {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        }
+        
+        /* Gantt chart container styling */
+        .chart-container {
+            position: relative;
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        #gantt_here {
+            width: 100%;
+            height: 100%;
             min-height: 500px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
-            overflow-x: auto;
         }
         
-        .timeline {
+        /* Custom Gantt Styling */
+        .gantt-chart {
+            padding: 20px;
+        }
+        
+        .timeline-header {
             display: flex;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border-bottom: 2px solid #eaeaea;
             padding-bottom: 15px;
         }
         
         .time-unit {
-            width: 100px;
+            width: 120px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
             color: #2c3e50;
-            padding: 8px 0;
+            padding: 10px 0;
             border-right: 1px dashed #ddd;
         }
         
         .tasks {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
         }
         
         .task {
             display: flex;
             align-items: center;
-            height: 55px;
+            height: 60px;
             position: relative;
             padding: 5px 0;
         }
         
         .task-label {
-            width: 250px;
+            width: 300px;
             font-weight: 600;
             padding-right: 20px;
             color: #2c3e50;
-            font-size: 1.05rem;
+            font-size: 1.1rem;
         }
         
         .task-bar-container {
             flex: 1;
-            height: 35px;
+            height: 40px;
             background: #f5f9ff;
-            border-radius: 8px;
+            border-radius: 10px;
             position: relative;
             overflow: hidden;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
         
         .task-bar {
             height: 100%;
-            background: linear-gradient(90deg, #4facfe, #00f2fe);
-            border-radius: 8px;
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            border-radius: 10px;
             position: absolute;
             display: flex;
             align-items: center;
-            padding-left: 15px;
+            padding-left: 20px;
             color: white;
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-weight: 700;
+            font-size: 1rem;
             box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            min-width: 80px;
+            min-width: 100px;
         }
         
         .status {
-            margin-left: 25px;
-            padding: 5px 15px;
+            margin-left: 30px;
+            padding: 8px 18px;
             border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            min-width: 120px;
+            font-size: 1rem;
+            font-weight: 700;
+            min-width: 140px;
             text-align: center;
         }
         
@@ -259,111 +222,37 @@
         }
         
         .status.in-progress {
-            background: #99ccff;
-            color: #0044cc;
+            background: #3498db;
+            color: white;
         }
         
         .status.completed {
-            background: #99ff99;
-            color: #006600;
+            background: #2ecc71;
+            color: white;
         }
         
         .status.delayed {
-            background: #ff9999;
-            color: #cc0000;
+            background: #e74c3c;
+            color: white;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .stat-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-item .value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #1a2a6c;
-            margin: 10px 0;
-        }
-        
-        .stat-item .label {
-            font-size: 0.95rem;
-            color: #7f8c8d;
-        }
-        
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .task-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        
-        .task-item:hover {
-            background: #e3f2fd;
-            transform: translateX(5px);
-        }
-        
-        .task-bullet {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #3498db;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .task-details {
-            flex: 1;
-        }
-        
-        .task-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-        
-        .task-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-        }
-        
+        /* Loading spinner */
         .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 400px;
             gap: 20px;
         }
         
         .spinner {
             width: 60px;
             height: 60px;
-            border: 6px solid rgba(26, 42, 108, 0.2);
-            border-top: 6px solid #1a2a6c;
+            border: 6px solid rgba(52, 152, 219, 0.2);
+            border-top: 6px solid #3498db;
             border-radius: 50%;
             animation: spin 1.2s linear infinite;
         }
@@ -371,7 +260,7 @@
         .loading-text {
             font-size: 1.2rem;
             color: #2c3e50;
-            font-weight: 500;
+            font-weight: 600;
         }
         
         @keyframes spin {
@@ -379,71 +268,55 @@
             100% { transform: rotate(360deg); }
         }
         
-        .error {
-            background: rgba(255, 255, 255, 0.95);
+        /* Error message */
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px 40px;
             border-radius: 15px;
-            padding: 40px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            max-width: 80%;
+            z-index: 100;
         }
         
-        .error i {
+        .error-icon {
             font-size: 3.5rem;
             color: #e74c3c;
-            margin-bottom: 25px;
-        }
-        
-        .error h2 {
-            color: #e74c3c;
             margin-bottom: 20px;
-            font-size: 1.8rem;
         }
         
-        .error p {
+        .error-title {
+            color: #e74c3c;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .error-desc {
             font-size: 1.1rem;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             line-height: 1.6;
         }
         
-        .error code {
+        .error-code {
             background: #f8f9fa;
-            padding: 8px 15px;
-            border-radius: 6px;
+            padding: 10px 15px;
+            border-radius: 8px;
             font-family: monospace;
             display: inline-block;
             margin-top: 10px;
         }
         
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            color: white;
-            font-size: 1rem;
-            padding: 20px;
-            opacity: 0.9;
-        }
-        
-        @media (max-width: 768px) {
-            .project-title {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .controls {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .btn {
-                flex: 1;
-                justify-content: center;
-            }
-            
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
             .task {
                 flex-direction: column;
                 height: auto;
-                gap: 10px;
-                padding: 15px 0;
+                gap: 15px;
+                padding: 20px 0;
                 border-bottom: 1px solid #eee;
             }
             
@@ -461,354 +334,300 @@
                 width: 100%;
             }
         }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .project-meta {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+            }
+            
+            .toolbar button, .toolbar select {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .time-unit {
+                width: 80px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <header>
+        <div class="header">
             <div class="project-info">
                 <div class="project-title">
-                    <i class="fas fa-project-diagram"></i>
-                    <h1>Construction Project Dashboard</h1>
+                    <i class="fas fa-hard-hat"></i>
+                    <span>Commercial Building Project</span>
                 </div>
-                <div class="project-meta">
-                    <div class="meta-item">
-                        <h3>PROJECT ID</h3>
-                        <div class="value" id="project-id">PRJ-2023-001</div>
-                    </div>
-                    <div class="meta-item">
-                        <h3>DURATION</h3>
-                        <div class="value" id="project-duration">16 weeks</div>
-                    </div>
-                    <div class="meta-item">
-                        <h3>PROGRESS</h3>
-                        <div class="value" id="project-progress">42%</div>
-                    </div>
-                    <div class="meta-item">
-                        <h3>MANAGER</h3>
-                        <div class="value" id="project-manager">Sarah Johnson</div>
-                    </div>
+                <div class="project-id" id="project-id-display">
+                    Loading project...
                 </div>
             </div>
             
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="label">TOTAL TASKS</div>
-                    <div class="value" id="total-tasks">28</div>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Duration: <strong id="project-duration">16 weeks</strong></span>
                 </div>
-                <div class="stat-item">
-                    <div class="label">COMPLETED</div>
-                    <div class="value" id="completed-tasks">12</div>
+                <div class="meta-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Tasks: <strong id="task-count">28</strong></span>
                 </div>
-                <div class="stat-item">
-                    <div class="label">IN PROGRESS</div>
-                    <div class="value" id="inprogress-tasks">10</div>
+                <div class="meta-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Manager: <strong id="project-manager">Sarah Johnson</strong></span>
                 </div>
-                <div class="stat-item">
-                    <div class="label">DELAYED</div>
-                    <div class="value" id="delayed-tasks">6</div>
-                </div>
-            </div>
-        </header>
-        
-        <div class="content-grid">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-list-check"></i> Key Tasks</h2>
-                </div>
-                <div class="card-content">
-                    <div class="task-list" id="key-tasks">
-                        <!-- Key tasks will be populated here -->
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-chart-pie"></i> Project Summary</h2>
-                </div>
-                <div class="card-content">
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="label">TOTAL VALUE</div>
-                            <div class="value">$213K</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="label">EST. RETURN</div>
-                            <div class="value">0.2%</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="label">RISK FACTOR</div>
-                            <div class="value">Medium</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card gantt-container">
-                <div class="chart-header">
-                    <h2><i class="fas fa-chart-gantt"></i> Project Timeline</h2>
-                    <div class="controls">
-                        <button class="btn" id="zoom-in">
-                            <i class="fas fa-search-plus"></i> Zoom In
-                        </button>
-                        <button class="btn" id="zoom-out">
-                            <i class="fas fa-search-minus"></i> Zoom Out
-                        </button>
-                        <button class="btn" id="export-btn">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                    </div>
-                </div>
-                <div class="gantt-chart" id="gantt-chart">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <div class="loading-text">Loading project data...</div>
-                    </div>
+                <div class="meta-item">
+                    <i class="fas fa-percent"></i>
+                    <span>Progress: <strong id="project-progress">42%</strong></span>
                 </div>
             </div>
         </div>
         
-        <footer>
-            <p>Advanced Project Management Dashboard &copy; 2023 | All Rights Reserved</p>
-        </footer>
+        <div class="toolbar">
+            <button id="expand-all-btn">
+                <i class="fas fa-expand-alt"></i> Expand All
+            </button>
+            <button id="collapse-all-btn">
+                <i class="fas fa-compress-alt"></i> Collapse All
+            </button>
+            <select id="timeline-scale">
+                <option value="day">Day View</option>
+                <option value="week" selected>Week View</option>
+                <option value="month">Month View</option>
+                <option value="quarter">Quarter View</option>
+                <option value="year">Year View</option>
+                <option value="fit">Fit Content</option>
+            </select>
+            <button id="refresh-data-btn">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+            <button id="export-btn">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+
+        <div class="chart-container">
+            <div id="gantt_here" class="gantt-chart">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading project data...</div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
-        // Sample data for demonstration
-        const sampleData = {
-            project_id: "PRJ-2023-001",
-            project_name: "Commercial Building Construction",
-            duration: "16 weeks",
-            manager: "Sarah Johnson",
-            progress: 42,
-            tasks: [
-                {
-                    id: 1,
-                    name: "Research & Planning",
-                    start: "2023-07-01",
-                    end: "2023-07-14",
-                    progress: 100,
-                    status: "completed"
-                },
-                {
-                    id: 2,
-                    name: "Design Phase",
-                    start: "2023-07-10",
-                    end: "2023-08-04",
-                    progress: 80,
-                    status: "in-progress"
-                },
-                {
-                    id: 3,
-                    name: "Site Preparation",
-                    start: "2023-07-25",
-                    end: "2023-08-25",
-                    progress: 45,
-                    status: "in-progress"
-                },
-                {
-                    id: 4,
-                    name: "Foundation Work",
-                    start: "2023-08-01",
-                    end: "2023-09-01",
-                    progress: 30,
-                    status: "in-progress"
-                },
-                {
-                    id: 5,
-                    name: "Structural Framing",
-                    start: "2023-08-10",
-                    end: "2023-09-10",
-                    progress: 20,
-                    status: "planned"
-                },
-                {
-                    id: 6,
-                    name: "Electrical & Plumbing",
-                    start: "2023-09-05",
-                    end: "2023-10-05",
-                    progress: 0,
-                    status: "planned"
-                },
-                {
-                    id: 7,
-                    name: "Interior Finishing",
-                    start: "2023-10-01",
-                    end: "2023-10-15",
-                    progress: 0,
-                    status: "planned"
-                },
-                {
-                    id: 8,
-                    name: "Final Inspection",
-                    start: "2023-10-16",
-                    end: "2023-10-20",
-                    progress: 0,
-                    status: "planned"
-                }
-            ],
-            keyTasks: [
-                { name: "Modulation: INTELC", date: "09 Nov - 09 Nov", duration: "6 days" },
-                { name: "Modulation: CONVIRONATION", date: "14 Nov - 16 Nov", duration: "9 days" },
-                { name: "Special Installation", date: "00 Nov - 07 Nov", duration: "5 days" },
-                { name: "All Installations", date: "08 Nov - 30 Nov", duration: "22 days" }
-            ]
-        };
-        
-        function loadGanttData() {
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get project ID from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const projectId = urlParams.get("project_id");
+            const projectId = urlParams.get('project_id');
             
-            const ganttChart = document.getElementById("gantt-chart");
+            // Update project ID display
+            const projectIdDisplay = document.getElementById('project-id-display');
+            if (projectId) {
+                projectIdDisplay.textContent = `Project ID: ${projectId}`;
+            } else {
+                projectIdDisplay.textContent = 'No Project ID Specified';
+                projectIdDisplay.style.background = '#e74c3c';
+            }
             
-            if (!projectId) {
-                ganttChart.innerHTML = `
-                    <div class="error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h2>No Project Selected</h2>
-                        <p>Please add a project_id parameter to the URL to load a project.</p>
-                        <p>For example: <code>?project_id=12345</code></p>
-                        <p>Using sample data for demonstration.</p>
+            // Function to display error message
+            function showError(message, details = '') {
+                const ganttContainer = document.getElementById('gantt_here');
+                ganttContainer.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2 class="error-title">${message}</h2>
+                        <p class="error-desc">${details}</p>
+                        <p>Please check the URL and try again.</p>
+                        ${projectId ? '' : '<div class="error-code">Example: ?project_id=PRJ-2023-001</div>'}
                     </div>
                 `;
-                
-                // Render sample data
-                const processedData = processGanttData(sampleData);
-                renderGantt(processedData);
-                renderKeyTasks(sampleData.keyTasks);
-                updateProjectInfo(sampleData);
+            }
+            
+            // If no project ID, show error and stop execution
+            if (!projectId) {
+                showError('Project ID Required', 'No project_id parameter found in the URL');
                 return;
             }
             
-            // Update project ID display
-            document.getElementById("project-id").textContent = projectId;
-            
-            // Simulate API call with timeout
-            setTimeout(() => {
-                // In a real implementation, we would process the API response here
-                const processedData = processGanttData(sampleData);
-                renderGantt(processedData);
-                renderKeyTasks(sampleData.keyTasks);
-                updateProjectInfo(sampleData);
-            }, 2000);
-        }
-        
-        function processGanttData(data) {
-            // Update project info
-            updateProjectInfo(data);
-            
-            return data;
-        }
-        
-        function updateProjectInfo(data) {
-            document.getElementById("project-id").textContent = data.project_id;
-            document.getElementById("project-duration").textContent = data.duration;
-            document.getElementById("project-manager").textContent = data.manager;
-            document.getElementById("project-progress").textContent = data.progress + "%";
-            
-            // Calculate task status counts
-            const statusCounts = {
-                planned: 0,
-                "in-progress": 0,
-                completed: 0,
-                delayed: 0
-            };
-            
-            data.tasks.forEach(task => {
-                statusCounts[task.status] = (statusCounts[task.status] || 0) + 1;
-            });
-            
-            // Update task counts
-            document.getElementById("total-tasks").textContent = data.tasks.length;
-            document.getElementById("completed-tasks").textContent = statusCounts.completed;
-            document.getElementById("inprogress-tasks").textContent = statusCounts["in-progress"];
-            document.getElementById("delayed-tasks").textContent = statusCounts.delayed;
-        }
-        
-        function renderKeyTasks(tasks) {
-            const container = document.getElementById("key-tasks");
-            container.innerHTML = "";
-            
-            tasks.forEach(task => {
-                const taskElement = document.createElement("div");
-                taskElement.className = "task-item";
+            // Simulate API call with project ID
+            function loadGanttData() {
+                // Show loading state
+                document.querySelector('.loading-text').textContent = `Loading project ${projectId}...`;
                 
-                taskElement.innerHTML = `
-                    <div class="task-bullet"></div>
-                    <div class="task-details">
-                        <div class="task-name">${task.name}</div>
-                        <div class="task-meta">
-                            <span><i class="far fa-calendar"></i> ${task.date}</span>
-                            <span><i class="far fa-clock"></i> ${task.duration}</span>
-                        </div>
+                // Simulate API call delay
+                setTimeout(() => {
+                    // Sample data for demonstration
+                    const sampleData = {
+                        project_id: projectId,
+                        project_name: "Commercial Building Construction",
+                        duration: "16 weeks",
+                        manager: "Sarah Johnson",
+                        progress: 42,
+                        tasks: [
+                            {
+                                id: 1,
+                                name: "Research & Planning",
+                                start: "2023-07-01",
+                                end: "2023-07-14",
+                                progress: 100,
+                                status: "completed"
+                            },
+                            {
+                                id: 2,
+                                name: "Design Phase",
+                                start: "2023-07-10",
+                                end: "2023-08-04",
+                                progress: 80,
+                                status: "in-progress"
+                            },
+                            {
+                                id: 3,
+                                name: "Site Preparation",
+                                start: "2023-07-25",
+                                end: "2023-08-25",
+                                progress: 45,
+                                status: "in-progress"
+                            },
+                            {
+                                id: 4,
+                                name: "Foundation Work",
+                                start: "2023-08-01",
+                                end: "2023-09-01",
+                                progress: 30,
+                                status: "in-progress"
+                            },
+                            {
+                                id: 5,
+                                name: "Structural Framing",
+                                start: "2023-08-10",
+                                end: "2023-09-10",
+                                progress: 20,
+                                status: "planned"
+                            },
+                            {
+                                id: 6,
+                                name: "Electrical & Plumbing",
+                                start: "2023-09-05",
+                                end: "2023-10-05",
+                                progress: 0,
+                                status: "planned"
+                            },
+                            {
+                                id: 7,
+                                name: "Interior Finishing",
+                                start: "2023-10-01",
+                                end: "2023-10-15",
+                                progress: 0,
+                                status: "planned"
+                            },
+                            {
+                                id: 8,
+                                name: "Final Inspection",
+                                start: "2023-10-16",
+                                end: "2023-10-20",
+                                progress: 0,
+                                status: "planned"
+                            }
+                        ]
+                    };
+                    
+                    // Update project info
+                    document.getElementById("project-duration").textContent = sampleData.duration;
+                    document.getElementById("task-count").textContent = sampleData.tasks.length;
+                    document.getElementById("project-manager").textContent = sampleData.manager;
+                    document.getElementById("project-progress").textContent = sampleData.progress + "%";
+                    
+                    // Render Gantt chart
+                    renderGantt(sampleData);
+                }, 2000);
+            }
+            
+            function renderGantt(data) {
+                const ganttChart = document.getElementById("gantt_here");
+                
+                // Generate timeline
+                const timelineHtml = `
+                    <div class="timeline-header">
+                        <div class="time-unit">Jul 2023</div>
+                        <div class="time-unit">Aug 2023</div>
+                        <div class="time-unit">Sep 2023</div>
+                        <div class="time-unit">Oct 2023</div>
+                        <div class="time-unit">Nov 2023</div>
                     </div>
                 `;
                 
-                container.appendChild(taskElement);
-            });
-        }
-        
-        function renderGantt(data) {
-            const ganttChart = document.getElementById("gantt-chart");
-            
-            // Generate timeline
-            const timelineHtml = `
-                <div class="timeline">
-                    <div class="time-unit">Jul 2023</div>
-                    <div class="time-unit">Aug 2023</div>
-                    <div class="time-unit">Sep 2023</div>
-                    <div class="time-unit">Oct 2023</div>
-                    <div class="time-unit">Nov 2023</div>
-                </div>
-            `;
-            
-            // Generate tasks
-            let tasksHtml = '<div class="tasks">';
-            
-            data.tasks.forEach(task => {
-                // Calculate bar width (simplified for demo)
-                const startDate = new Date(task.start);
-                const endDate = new Date(task.end);
-                const durationDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
-                const barWidth = Math.min(100, Math.max(10, durationDays * 2));
+                // Generate tasks
+                let tasksHtml = '<div class="tasks">';
                 
-                tasksHtml += `
-                    <div class="task">
-                        <div class="task-label">${task.name}</div>
-                        <div class="task-bar-container">
-                            <div class="task-bar" style="width: ${barWidth}%;">
-                                ${task.progress}% complete
+                data.tasks.forEach(task => {
+                    // Calculate bar width (simplified for demo)
+                    const startDate = new Date(task.start);
+                    const endDate = new Date(task.end);
+                    const durationDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+                    const barWidth = Math.min(100, Math.max(15, durationDays * 2.5));
+                    
+                    tasksHtml += `
+                        <div class="task">
+                            <div class="task-label">${task.name}</div>
+                            <div class="task-bar-container">
+                                <div class="task-bar" style="width: ${barWidth}%;">
+                                    ${task.progress}% complete
+                                </div>
+                            </div>
+                            <div class="status ${task.status}">
+                                ${task.status.replace('-', ' ')}
                             </div>
                         </div>
-                        <div class="status ${task.status}">
-                            ${task.status.replace('-', ' ')}
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
+                
+                tasksHtml += '</div>';
+                
+                ganttChart.innerHTML = timelineHtml + tasksHtml;
+            }
+            
+            // Button event handlers
+            document.getElementById("expand-all-btn").addEventListener("click", () => {
+                alert("Expand All feature would expand all WBS items");
             });
             
-            tasksHtml += '</div>';
+            document.getElementById("collapse-all-btn").addEventListener("click", () => {
+                alert("Collapse All feature would collapse all WBS items");
+            });
             
-            ganttChart.innerHTML = timelineHtml + tasksHtml;
-        }
-        
-        // Add event listeners for buttons
-        document.getElementById("zoom-in").addEventListener("click", () => {
-            alert("Zoom in feature would adjust the timeline view");
+            document.getElementById("refresh-data-btn").addEventListener("click", () => {
+                loadGanttData();
+            });
+            
+            document.getElementById("export-btn").addEventListener("click", () => {
+                alert(`Export feature would download project ${projectId} data`);
+            });
+            
+            // Timeline scale change
+            document.getElementById("timeline-scale").addEventListener("change", function() {
+                alert(`Changed timeline view to: ${this.value}`);
+            });
+            
+            // Initial data load
+            loadGanttData();
         });
-        
-        document.getElementById("zoom-out").addEventListener("click", () => {
-            alert("Zoom out feature would adjust the timeline view");
-        });
-        
-        document.getElementById("export-btn").addEventListener("click", () => {
-            alert("Export feature would download the chart as an image");
-        });
-        
-        // Initialize on page load
-        window.onload = loadGanttData;
     </script>
 </body>
 </html>
