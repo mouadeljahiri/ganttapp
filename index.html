@@ -226,6 +226,47 @@
                 padding: 8px 10px;
             }
         }
+        
+        /* Loading indicator */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Message container */
+        .message-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+            max-width: 300px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -246,6 +287,12 @@
 
         <div class="chart-container">
             <div id="gantt_here"></div>
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="spinner"></div>
+            </div>
+            <div class="message-container" id="message-container">
+                Waiting for data from Bubble...
+            </div>
         </div>
     </div>
     
@@ -261,54 +308,23 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Get API URL from URL parameter
-            const apiUrl = getUrlParameter('api_url') || "https://cpmchart.onrender.com/gantt-data";
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const messageContainer = document.getElementById('message-container');
             
-            // Check if the gantt object and its zoom extension exist. If not, the library failed to load.
+            // Show loading state
+            loadingOverlay.style.display = 'flex';
+            messageContainer.style.display = 'block';
+            
+            // Check if the gantt object and its zoom extension exist
             if (typeof gantt === "undefined" || typeof gantt.ext === "undefined" || typeof gantt.ext.zoom === "undefined") {
                 document.getElementById("gantt_here").innerHTML = 
                     '<div style="padding: 20px; text-align: center; font-size: 16px; color: red;">' +
                     'Error: The dhtmlxGantt library or a required extension (e.g., zoom) failed to load. Please check that the script files are correctly linked in the &lt;head&gt; section.' +
                     '</div>';
-                return; // Stop executing the rest of the script
+                loadingOverlay.style.display = 'none';
+                return;
             }
 
-            // --- Rollup Configuration ---
-            gantt.config.scale_height = 50;
-            gantt.locale.labels.section_rollup = "Rollup";
-            gantt.locale.labels.section_hide_bar = "Hide bar";
-            
-            gantt.config.lightbox.sections = [
-                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
-                {name: "rollup", type: "checkbox", map_to: "rollup"},
-                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
-                {name: "type", type: "typeselect", map_to: "type"},
-                {name: "time", type: "duration", map_to: "auto"}
-            ];
-            
-            gantt.config.lightbox.milestone_sections = [
-                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
-                {name: "rollup", type: "checkbox", map_to: "rollup"},
-                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
-                {name: "type", type: "typeselect", map_to: "type"},
-                {name: "time", type: "duration", map_to: "auto"}
-            ];
-            
-            gantt.config.lightbox.project_sections = [
-                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
-                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
-                {name: "type", type: "typeselect", map_to: "type"},
-                {name: "time", type: "duration", map_to: "auto"}
-            ];
-            
-            // Show milestone text on summary bars
-            gantt.templates.rightside_text = function (start, end, task) {
-                if (task.type == "milestone" && task.rollup) {
-                    return "<div class='rollup_text'>" + task.text + "</div>";
-                }
-                return "";
-            };
-            
             // --- Gantt Configuration ---
             gantt.config.date_format = "%Y-%m-%d";
             gantt.config.row_height = 32;
@@ -588,136 +604,92 @@
                 gantt.endBatch();
             }
             
-            // --- Efficient Data Loading Function ---
-            function loadGanttData() {
-                fetch(apiUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error("Network response was not ok: " + response.status);
-                        return response.json();
-                    })
-                    .then(apiResponse => {
-                        let rawData;
-                        if (Array.isArray(apiResponse)) {
-                            rawData = apiResponse;
-                        } else if (Array.isArray(apiResponse.data)) {
-                            rawData = apiResponse.data;
-                        } else {
-                            throw new Error("Invalid API response format.");
-                        }
+            // --- Data Loading via postMessage ---
+            window.addEventListener("message", (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("Received data from Bubble:", data);
+                    
+                    // Update message
+                    document.getElementById('message-container').textContent = 
+                        `Loaded project: ${data.project_id} with ${data.activities.length} activities`;
+                    
+                    // Process and render the data
+                    const ganttTasks = processGanttData(data.activities);
+                    renderGantt(ganttTasks);
+                    
+                    // Auto-expand after data load
+                    setTimeout(expandAll, 100);
+                    
+                    // Hide loading overlay
+                    loadingOverlay.style.display = 'none';
+                    
+                    // Auto-hide message after 3 seconds
+                    setTimeout(() => {
+                        document.getElementById('message-container').style.display = 'none';
+                    }, 3000);
+                } catch (e) {
+                    console.error("Failed to parse message data", e);
+                    document.getElementById('message-container').textContent = 
+                        "Error: Invalid data received from Bubble";
+                }
+            });
+            
+            // Fallback to API if no message received within 5 seconds
+            setTimeout(() => {
+                if (loadingOverlay.style.display !== 'none') {
+                    const apiUrl = getUrlParameter('api_url') || "https://cpmchart.onrender.com/gantt-data";
+                    const projectId = getUrlParameter('project_id');
+                    
+                    if (apiUrl) {
+                        messageContainer.textContent = "Loading data from API...";
                         
-                        if (rawData.length === 0) {
-                            throw new Error("API returned an empty data array.");
-                        }
-                        
-                        const ganttTasks = processGanttData(rawData);
-                        renderGantt(ganttTasks);
-                        
-                        // Auto-expand after data load
-                        setTimeout(expandAll, 100);
-                    })
-                    .catch(error => {
-                        console.error("API fetch error, loading fallback data:", error);
-                        
-                        // Fallback sample data
-                        const sampleData = [
-                            { 
-                                wbs_id: "100", 
-                                wbs_name: "Project Alpha", 
-                                wbs_parent_id: null
-                            },
-                            { 
-                                wbs_id: "101", 
-                                wbs_name: "Phase 1: Planning", 
-                                wbs_parent_id: "100",
-                                activity_id: "A1", 
-                                activity_name: "Develop Project Plan", 
-                                start_date: "2024-01-02", 
-                                duration: 5, 
-                                progress: 1, 
-                                type: "task" 
-                            },
-                            { 
-                                wbs_id: "101", 
-                                wbs_name: "Phase 1: Planning", 
-                                wbs_parent_id: "100",
-                                activity_id: "A2", 
-                                activity_name: "Team Kick-off Meeting", 
-                                start_date: "2024-01-07", 
-                                duration: 0, 
-                                progress: 1, 
-                                type: "milestone",
-                                rollup: true
-                            },
-                            { 
-                                wbs_id: "102", 
-                                wbs_name: "Phase 2: Execution", 
-                                wbs_parent_id: "100",
-                                activity_id: "B1", 
-                                activity_name: "Site Preparation", 
-                                start_date: "2024-01-08", 
-                                duration: 7, 
-                                progress: 0.8, 
-                                type: "task" 
-                            },
-                            { 
-                                wbs_id: "102", 
-                                wbs_name: "Phase 2: Execution", 
-                                wbs_parent_id: "100",
-                                activity_id: "B2", 
-                                activity_name: "Foundation Work", 
-                                start_date: "2024-01-15", 
-                                duration: 10, 
-                                progress: 0.65, 
-                                type: "task" 
-                            },
-                            { 
-                                wbs_id: "103", 
-                                wbs_name: "Phase 3: Finishing", 
-                                wbs_parent_id: "100",
-                                activity_id: "C1", 
-                                activity_name: "Interior Work", 
-                                start_date: "2024-01-25", 
-                                duration: 15, 
-                                progress: 0.3, 
-                                type: "task",
-                                hide_bar: true
-                            },
-                            { 
-                                wbs_id: "103", 
-                                wbs_name: "Phase 3: Finishing", 
-                                wbs_parent_id: "100",
-                                activity_id: "M1", 
-                                activity_name: "Project Completion", 
-                                start_date: "2024-02-15", 
-                                duration: 0, 
-                                progress: 0, 
-                                type: "milestone",
-                                rollup: true
-                            }
-                        ];
-                        
-                        const ganttTasks = processGanttData(sampleData);
-                        renderGantt(ganttTasks);
-                        
-                        // Auto-expand after data load
-                        setTimeout(expandAll, 100);
-                    });
-            }
+                        fetch(apiUrl + (projectId ? `?project_id=${projectId}` : ''))
+                            .then(response => response.json())
+                            .then(data => {
+                                const ganttTasks = processGanttData(data);
+                                renderGantt(ganttTasks);
+                                setTimeout(expandAll, 100);
+                                loadingOverlay.style.display = 'none';
+                                
+                                messageContainer.textContent = 
+                                    `Loaded data from API${projectId ? ` for project ${projectId}` : ''}`;
+                                setTimeout(() => {
+                                    messageContainer.style.display = 'none';
+                                }, 3000);
+                            })
+                            .catch(error => {
+                                console.error("API fetch error:", error);
+                                messageContainer.textContent = "Error loading data from API";
+                                loadingOverlay.style.display = 'none';
+                            });
+                    } else {
+                        messageContainer.textContent = "No data received and no API URL provided";
+                        loadingOverlay.style.display = 'none';
+                    }
+                }
+            }, 5000);
 
             // --- Event Handlers ---
             document.getElementById("expand-all-btn").addEventListener("click", expandAll);
             document.getElementById("collapse-all-btn").addEventListener("click", collapseAll);
-            document.getElementById("refresh-data-btn").addEventListener("click", loadGanttData);
+            document.getElementById("refresh-data-btn").addEventListener("click", () => {
+                // Send a message back to Bubble to request fresh data
+                window.parent.postMessage(JSON.stringify({ type: "refresh" }), "*");
+                messageContainer.textContent = "Requesting fresh data from Bubble...";
+                messageContainer.style.display = 'block';
+                loadingOverlay.style.display = 'flex';
+            });
 
-            // Initial data load
-            loadGanttData();
-            
             // Ensure Gantt chart resizes with container
             window.addEventListener("resize", function() {
                 if (gantt.$container) {
                     gantt.render();
                 }
             });
+            
+            // Notify Bubble that we're ready to receive data
+            window.parent.postMessage(JSON.stringify({ type: "ready" }), "*");
         });
     </script>
 </body>
