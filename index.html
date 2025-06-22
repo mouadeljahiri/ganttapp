@@ -215,82 +215,6 @@
             background: #f1f1f1;
         }
         
-        /* Project ID indicator */
-        .project-id-display {
-            background: #3498db;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-left: auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        /* Error message styling */
-        .error-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 100;
-            max-width: 80%;
-        }
-        
-        .error-message h2 {
-            color: #e74c3c;
-            margin-bottom: 15px;
-        }
-        
-        .error-message p {
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        
-        .error-icon {
-            font-size: 48px;
-            color: #e74c3c;
-            margin-bottom: 20px;
-        }
-        
-        /* Loading spinner */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            z-index: 50;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(52, 152, 219, 0.2);
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            font-size: 18px;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .toolbar {
@@ -300,12 +224,6 @@
                 flex: 1 0 45%;
                 font-size: 12px;
                 padding: 8px 10px;
-            }
-            
-            .project-id-display {
-                width: 100%;
-                text-align: center;
-                margin: 10px 0 0 0;
             }
         }
     </style>
@@ -324,57 +242,37 @@
                 <option value="fit">Fit Content</option>
             </select>
             <button id="refresh-data-btn">Refresh Data</button>
-            <div class="project-id-display" id="project-id-display">
-                Loading project...
-            </div>
         </div>
 
         <div class="chart-container">
-            <div id="gantt_here">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Loading Gantt Chart...</div>
-                </div>
-            </div>
+            <div id="gantt_here"></div>
         </div>
     </div>
     
     <script>
+        // Function to get URL parameter
+        function getUrlParameter(name) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(window.location.href);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
-            // Check if the gantt object and its zoom extension exist
+            // Get API URL from URL parameter
+            const apiUrl = getUrlParameter('api_url') || "https://cpmchart.onrender.com/gantt-data";
+            
+            // Check if the gantt object and its zoom extension exist. If not, the library failed to load.
             if (typeof gantt === "undefined" || typeof gantt.ext === "undefined" || typeof gantt.ext.zoom === "undefined") {
                 document.getElementById("gantt_here").innerHTML = 
-                    '<div class="error-message">' +
-                    '<div class="error-icon">⚠️</div>' +
-                    '<h2>Library Loading Error</h2>' +
-                    '<p>The dhtmlxGantt library failed to load.</p>' +
-                    '<p>Please check the script URLs in the &lt;head&gt; section.</p>' +
+                    '<div style="padding: 20px; text-align: center; font-size: 16px; color: red;">' +
+                    'Error: The dhtmlxGantt library or a required extension (e.g., zoom) failed to load. Please check that the script files are correctly linked in the &lt;head&gt; section.' +
                     '</div>';
-                return;
+                return; // Stop executing the rest of the script
             }
 
-            // Get project ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const projectId = urlParams.get('project_id');
-            const projectIdDisplay = document.getElementById('project-id-display');
-            
-            if (!projectId) {
-                projectIdDisplay.textContent = 'No Project ID Specified';
-                projectIdDisplay.style.background = '#e74c3c';
-                
-                document.getElementById("gantt_here").innerHTML = 
-                    '<div class="error-message">' +
-                    '<div class="error-icon">❌</div>' +
-                    '<h2>Project ID Required</h2>' +
-                    '<p>No project_id parameter found in the URL.</p>' +
-                    '<p>Please add ?project_id=YOUR_PROJECT_ID to the URL.</p>' +
-                    '</div>';
-                return;
-            }
-            
-            // Update project ID display
-            projectIdDisplay.textContent = `Project ID: ${projectId}`;
-            
             // --- Rollup Configuration ---
             gantt.config.scale_height = 50;
             gantt.locale.labels.section_rollup = "Rollup";
@@ -692,10 +590,7 @@
             
             // --- Efficient Data Loading Function ---
             function loadGanttData() {
-                // Show loading state
-                document.querySelector('.loading-text').textContent = `Loading project ${projectId}...`;
-                
-                fetch(`https://cpmchart.onrender.com/gantt-data?project_id=${projectId}`)
+                fetch(apiUrl)
                     .then(response => {
                         if (!response.ok) throw new Error("Network response was not ok: " + response.status);
                         return response.json();
@@ -719,28 +614,15 @@
                         
                         // Auto-expand after data load
                         setTimeout(expandAll, 100);
-                        
-                        // Hide loading spinner
-                        document.querySelector('.loading').style.display = 'none';
                     })
                     .catch(error => {
                         console.error("API fetch error, loading fallback data:", error);
-                        
-                        // Show error message
-                        document.querySelector('.loading').innerHTML = 
-                            '<div class="error-message">' +
-                            '<div class="error-icon">⚠️</div>' +
-                            '<h2>Data Loading Error</h2>' +
-                            '<p>Could not load project data for ID: ' + projectId + '</p>' +
-                            '<p>Error: ' + error.message + '</p>' +
-                            '<p>Using sample data for demonstration.</p>' +
-                            '</div>';
                         
                         // Fallback sample data
                         const sampleData = [
                             { 
                                 wbs_id: "100", 
-                                wbs_name: "Project " + projectId, 
+                                wbs_name: "Project Alpha", 
                                 wbs_parent_id: null
                             },
                             { 
