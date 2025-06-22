@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Project Gantt Chart</title>
+    
+    <link rel="stylesheet" href="./codebase/dhtmlxgantt.css">
+    <script src="./codebase/dhtmlxgantt.js"></script>
+    <script src="./codebase/ext/dhtmlxgantt_zoom.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: white;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            height: 100vh;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Toolbar styling */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .toolbar button, .toolbar select {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            background: #e0e0e0;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+
+        .toolbar button:hover, .toolbar select:hover {
+            background: #d0d0d0;
+        }
+        
+        .toolbar select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 40px;
+        }
+        
+        /* Gantt chart container styling */
+        .chart-container {
+            position: relative;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e1e4e8;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #gantt_here {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Custom dhtmlxGantt Styling */
+        .gantt_task_line.gantt_project {
+            background-color: #2ecc71 !important;
+            border: 1px solid #27ae60 !important;
+            border-radius: 3px !important;
+        }
+        
+        .gantt_task_line:not(.gantt_project):not(.gantt_milestone) {
+            background-color: #3498db !important;
+            border: 1px solid #2980b9 !important;
+            border-radius: 3px !important;
+        }
+        
+        .gantt_task_line.gantt_milestone {
+            background: transparent !important;
+            border: none !important;
+            overflow: visible !important;
+        }
+        
+        .gantt_task_line.gantt_milestone .gantt_task_content {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-top: -8px;
+            margin-left: -8px;
+            background: #9b59b6;
+            transform: rotate(45deg);
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+        }
+
+        .gantt_milestone .gantt_task_content > div {
+            display: none !important;
+        }
+        
+        .gantt_grid_scale .gantt_grid_head_cell {
+            background: #2c3e50 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-right: 1px solid #34495e !important;
+            padding: 8px 10px;
+        }
+        
+        .gantt_grid_data .gantt_row.odd {
+            background-color: #f9f9f9 !important;
+        }
+        
+        .gantt_task_row {
+            border-bottom: 1px solid #f0f0f0 !important;
+            height: 32px !important;
+            font-size: 13px;
+        }
+        
+        .gantt_grid_data .gantt_row:hover {
+            background-color: #e3f2fd !important;
+        }
+        
+        .gantt_tree_content {
+            padding: 0 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .gantt_grid_data .gantt_cell {
+            padding: 0 8px;
+        }
+        
+        /* Column resizing handle styling */
+        .gantt_grid_resizer {
+            width: 6px;
+            background: #3498db;
+            cursor: col-resize;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        
+        .gantt_grid_resizer:hover {
+            opacity: 1;
+        }
+        
+        /* Rollup-specific styles */
+        .gantt_task_line.gantt_invisible_bar {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .gantt_task_line.gantt_invisible_bar .gantt_task_content,
+        .gantt_task_line.gantt_invisible_bar .gantt_task_progress {
+            display: none !important;
+        }
+        
+        .gantt_task_content.rollup_text {
+            font-size: 11px;
+            color: #fff;
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+            font-weight: bold;
+            padding: 2px 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+        }
+        
+        /* Scrollbar styling */
+        #gantt_here::-webkit-scrollbar {
+            width: 14px;
+            height: 14px;
+        }
+        
+        #gantt_here::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        #gantt_here::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 10px;
+            border: 3px solid #f1f1f1;
+        }
+        
+        #gantt_here::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+        
+        #gantt_here::-webkit-scrollbar-corner {
+            background: #f1f1f1;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-wrap: wrap;
+            }
+            .toolbar button, .toolbar select {
+                flex: 1 0 45%;
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <button id="expand-all-btn">Expand All</button>
+            <button id="collapse-all-btn">Collapse All</button>
+            <select id="timeline-scale">
+                <option value="day">Day View</option>
+                <option value="week" selected>Week View</option>
+                <option value="month">Month View</option>
+                <option value="quarter">Quarter View</option>
+                <option value="year">Year View</option>
+                <option value="fit">Fit Content</option>
+            </select>
+            <button id="refresh-data-btn">Refresh Data</button>
+        </div>
+
+        <div class="chart-container">
+            <div id="gantt_here"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Check if the gantt object and its zoom extension exist. If not, the library failed to load.
+            if (typeof gantt === "undefined" || typeof gantt.ext === "undefined" || typeof gantt.ext.zoom === "undefined") {
+                document.getElementById("gantt_here").innerHTML = 
+                    '<div style="padding: 20px; text-align: center; font-size: 16px; color: red;">' +
+                    'Error: The dhtmlxGantt library or a required extension (e.g., zoom) failed to load. Please check that the script files are correctly linked in the &lt;head&gt; section.' +
+                    '</div>';
+                return; // Stop executing the rest of the script
+            }
+
+            // --- Rollup Configuration ---
+            gantt.config.scale_height = 50;
+            gantt.locale.labels.section_rollup = "Rollup";
+            gantt.locale.labels.section_hide_bar = "Hide bar";
+            
+            gantt.config.lightbox.sections = [
+                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
+                {name: "rollup", type: "checkbox", map_to: "rollup"},
+                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
+                {name: "type", type: "typeselect", map_to: "type"},
+                {name: "time", type: "duration", map_to: "auto"}
+            ];
+            
+            gantt.config.lightbox.milestone_sections = [
+                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
+                {name: "rollup", type: "checkbox", map_to: "rollup"},
+                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
+                {name: "type", type: "typeselect", map_to: "type"},
+                {name: "time", type: "duration", map_to: "auto"}
+            ];
+            
+            gantt.config.lightbox.project_sections = [
+                {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
+                {name: "hide_bar", type: "checkbox", map_to: "hide_bar"},
+                {name: "type", type: "typeselect", map_to: "type"},
+                {name: "time", type: "duration", map_to: "auto"}
+            ];
+            
+            // Show milestone text on summary bars
+            gantt.templates.rightside_text = function (start, end, task) {
+                if (task.type == "milestone" && task.rollup) {
+                    return "<div class='rollup_text'>" + task.text + "</div>";
+                }
+                return "";
+            };
+            
+            // --- Gantt Configuration ---
+            gantt.config.date_format = "%Y-%m-%d";
+            gantt.config.row_height = 32;
+            gantt.config.scale_height = 45;
+            gantt.config.details_on_dblclick = false;
+            gantt.config.drag_links = true;
+            gantt.config.grid_resize = true;
+            
+            // Define columns with Finish date
+            gantt.config.columns = [
+                { 
+                    name: "text", 
+                    label: "WBS / TASK", 
+                    tree: true, 
+                    width: 300, 
+                    resize: true, 
+                    editor: {type: "text", map_to: "text"},
+                    template: function(task) {
+                        return task.text;
+                    }
+                },
+                { 
+                    name: "start_date", 
+                    label: "START", 
+                    align: "center", 
+                    width: 100, 
+                    resize: true, 
+                    editor: {type: "date", map_to: "start_date", min: new Date(2010, 0, 1), max: new Date(2030, 0, 1)},
+                    template: function(task) {
+                        if (task.type === "project") return "";
+                        return gantt.date.date_to_str("%d %M")(task.start_date);
+                    }
+                },
+                { 
+                    name: "end_date", 
+                    label: "FINISH", 
+                    align: "center", 
+                    width: 100, 
+                    resize: true,
+                    editor: {
+                        type: "date", 
+                        map_to: "end_date", 
+                        min: new Date(2010, 0, 1), 
+                        max: new Date(2030, 0, 1)
+                    },
+                    template: function(task) {
+                        if (task.type === "project") return "";
+                        if (task.type === "milestone") {
+                            return gantt.date.date_to_str("%d %M")(task.start_date);
+                        }
+                        const finish = gantt.calculateEndDate(task.start_date, task.duration);
+                        return gantt.date.date_to_str("%d %M")(finish);
+                    }
+                },
+                { 
+                    name: "duration", 
+                    label: "DURATION", 
+                    align: "center", 
+                    width: 90, 
+                    resize: true, 
+                    editor: {type: "number", map_to: "duration", min:0, max: 1000},
+                    template: function(task) {
+                        if (task.type === "project") return "";
+                        return task.duration + (task.duration == 1 ? " day" : " days");
+                    }
+                },
+                { 
+                    name: "progress", 
+                    label: "PROGRESS", 
+                    align: "center", 
+                    width: 90, 
+                    resize: true,
+                    template: function(task) {
+                        if (task.type === 'milestone') return "—";
+                        if (task.type === 'project') return "";
+                        return Math.round((task.progress || 0) * 100) + "%";
+                    } 
+                }
+            ];
+            
+            // Apply custom styling classes
+            gantt.templates.task_class = (start, end, task) => {
+                let classes = [];
+                if (task.type === "project") classes.push("gantt_project");
+                if (task.type === "milestone") classes.push("gantt_milestone");
+                if (task.hide_bar) classes.push("gantt_invisible_bar");
+                return classes.join(" ");
+            };
+            
+            // Prevent linking involving WBS elements
+            gantt.attachEvent("onBeforeLinkAdd", (id, link) => {
+                const source = gantt.getTask(link.source);
+                const target = gantt.getTask(link.target);
+                if(source.type === "project" || target.type === "project"){
+                    return false;
+                }
+                return true;
+            });
+            
+            // --- Zoom Configuration ---
+            var zoomConfig = {
+                levels: [
+                    { 
+                        name: "day", 
+                        scale_height: 27, 
+                        min_column_width: 80, 
+                        scales: [
+                            { unit: "day", step: 1, format: "%d %M" }
+                        ] 
+                    },
+                    { 
+                        name: "week", 
+                        scale_height: 50, 
+                        min_column_width: 50, 
+                        scales: [ 
+                            { unit: "week", step: 1, format: function (date) { 
+                                return "Week #" + gantt.date.date_to_str("%W")(date); 
+                            } }, 
+                            { unit: "day", step: 1, format: "%j %D" } 
+                        ] 
+                    },
+                    { 
+                        name: "month", 
+                        scale_height: 50, 
+                        min_column_width: 120, 
+                        scales: [ 
+                            { unit: "month", step: 1, format: "%F, %Y" }, 
+                            { unit: "week", step: 1, format: "Week #%W" } 
+                        ] 
+                    },
+                    { 
+                        name: "quarter", 
+                        scale_height: 50, 
+                        min_column_width: 150,
+                        scales: [
+                            { 
+                                unit: "quarter", 
+                                step: 1, 
+                                format: function(date) {
+                                    const quarter = Math.floor((date.getMonth() + 3) / 3);
+                                    return `Q${quarter} ${date.getFullYear()}`;
+                                }
+                            },
+                            { 
+                                unit: "month", 
+                                step: 1, 
+                                format: "%M"
+                            }
+                        ]
+                    },
+                    { 
+                        name: "year", 
+                        scale_height: 50, 
+                        min_column_width: 30, 
+                        scales: [
+                            { unit: "year", step: 1, format: "%Y" }
+                        ] 
+                    }
+                ]
+            };
+            
+            gantt.ext.zoom.init(zoomConfig);
+            gantt.ext.zoom.setLevel("week");
+
+            // Initialize Gantt
+            gantt.init("gantt_here");
+            
+            // --- Timeline Scale Selection ---
+            document.getElementById("timeline-scale").addEventListener("change", function() {
+                if(this.value === "fit") {
+                    gantt.ext.zoom.fit();
+                } else {
+                    gantt.ext.zoom.setLevel(this.value);
+                }
+            });
+            
+            // --- Optimized Data Processing Functions ---
+            function processGanttData(rawData) {
+                const tasks = new Map();
+                const wbsSet = new Set();
+
+                // Create all WBS items
+                rawData.forEach(item => {
+                    if (item.wbs_id && !wbsSet.has(item.wbs_id)) {
+                        tasks.set(item.wbs_id, {
+                            id: item.wbs_id,
+                            text: item.wbs_name || `WBS-${item.wbs_id}`,
+                            parent: item.wbs_parent_id || null,
+                            type: "project",
+                            open: true,
+                            rollup: false,
+                            hide_bar: false
+                        });
+                        wbsSet.add(item.wbs_id);
+                    }
+                });
+                
+                // Create tasks and milestones
+                rawData.forEach(item => {
+                    if (item.activity_id) {
+                        let startDate;
+                        try {
+                            if (item.start_date) {
+                                startDate = new Date(item.start_date);
+                                if (isNaN(startDate.getTime())) throw new Error("Invalid date");
+                            } else { 
+                                throw new Error("Missing start date"); 
+                            }
+                        } catch (e) {
+                            startDate = new Date();
+                        }
+                        
+                        const duration = item.duration || (item.type === 'milestone' ? 0 : 1);
+                        
+                        const taskData = {
+                            id: item.activity_id, 
+                            text: item.activity_name || `Task-${item.activity_id}`,
+                            start_date: startDate, 
+                            duration: duration, 
+                            progress: item.progress || 0,
+                            parent: item.wbs_id, 
+                            type: item.type || "task",
+                            rollup: item.rollup || false,
+                            hide_bar: item.hide_bar || false
+                        };
+                        tasks.set(item.activity_id, taskData);
+                    }
+                });
+                
+                // Create placeholder WBS for any missing parents
+                rawData.forEach(item => {
+                    if (item.wbs_parent_id && !tasks.has(item.wbs_parent_id)) {
+                        tasks.set(item.wbs_parent_id, {
+                           id: item.wbs_parent_id, 
+                           text: `WBS-${item.wbs_parent_id}`,
+                           parent: null, 
+                           type: "project", 
+                           open: true,
+                           rollup: false,
+                           hide_bar: false
+                        });
+                    }
+                });
+
+                return { data: Array.from(tasks.values()), links: [] };
+            }
+            
+            function renderGantt(ganttTasks) {
+                gantt.clearAll();
+                gantt.parse(ganttTasks);
+                // Auto-fit timeline after render
+                setTimeout(() => {
+                    if(document.getElementById("timeline-scale").value === "fit") {
+                        gantt.ext.zoom.fit();
+                    }
+                }, 100);
+            }
+            
+            // --- Functions to Expand/Collapse All WBS Tasks ---
+            function expandAll() {
+                gantt.startBatch();
+                gantt.eachTask(function (task) {
+                    if (task.type === "project") {
+                        gantt.open(task.id);
+                    }
+                });
+                gantt.endBatch();
+            }
+
+            function collapseAll() {
+                gantt.startBatch();
+                gantt.eachTask(function (task) {
+                    if (task.type === "project") {
+                        gantt.close(task.id);
+                    }
+                });
+                gantt.endBatch();
+            }
+            
+            // --- Efficient Data Loading Function ---
+            function loadGanttData() {
+                fetch("https://cpmchart.onrender.com/gantt-data")
+                    .then(response => {
+                        if (!response.ok) throw new Error("Network response was not ok: " + response.status);
+                        return response.json();
+                    })
+                    .then(apiResponse => {
+                        let rawData;
+                        if (Array.isArray(apiResponse)) {
+                            rawData = apiResponse;
+                        } else if (Array.isArray(apiResponse.data)) {
+                            rawData = apiResponse.data;
+                        } else {
+                            throw new Error("Invalid API response format.");
+                        }
+                        
+                        if (rawData.length === 0) {
+                            throw new Error("API returned an empty data array.");
+                        }
+                        
+                        const ganttTasks = processGanttData(rawData);
+                        renderGantt(ganttTasks);
+                        
+                        // Auto-expand after data load
+                        setTimeout(expandAll, 100);
+                    })
+                    .catch(error => {
+                        console.error("API fetch error, loading fallback data:", error);
+                        
+                        // Fallback sample data
+                        const sampleData = [
+                            { 
+                                wbs_id: "100", 
+                                wbs_name: "Project Alpha", 
+                                wbs_parent_id: null
+                            },
+                            { 
+                                wbs_id: "101", 
+                                wbs_name: "Phase 1: Planning", 
+                                wbs_parent_id: "100",
+                                activity_id: "A1", 
+                                activity_name: "Develop Project Plan", 
+                                start_date: "2024-01-02", 
+                                duration: 5, 
+                                progress: 1, 
+                                type: "task" 
+                            },
+                            { 
+                                wbs_id: "101", 
+                                wbs_name: "Phase 1: Planning", 
+                                wbs_parent_id: "100",
+                                activity_id: "A2", 
+                                activity_name: "Team Kick-off Meeting", 
+                                start_date: "2024-01-07", 
+                                duration: 0, 
+                                progress: 1, 
+                                type: "milestone",
+                                rollup: true
+                            },
+                            { 
+                                wbs_id: "102", 
+                                wbs_name: "Phase 2: Execution", 
+                                wbs_parent_id: "100",
+                                activity_id: "B1", 
+                                activity_name: "Site Preparation", 
+                                start_date: "2024-01-08", 
+                                duration: 7, 
+                                progress: 0.8, 
+                                type: "task" 
+                            },
+                            { 
+                                wbs_id: "102", 
+                                wbs_name: "Phase 2: Execution", 
+                                wbs_parent_id: "100",
+                                activity_id: "B2", 
+                                activity_name: "Foundation Work", 
+                                start_date: "2024-01-15", 
+                                duration: 10, 
+                                progress: 0.65, 
+                                type: "task" 
+                            },
+                            { 
+                                wbs_id: "103", 
+                                wbs_name: "Phase 3: Finishing", 
+                                wbs_parent_id: "100",
+                                activity_id: "C1", 
+                                activity_name: "Interior Work", 
+                                start_date: "2024-01-25", 
+                                duration: 15, 
+                                progress: 0.3, 
+                                type: "task",
+                                hide_bar: true
+                            },
+                            { 
+                                wbs_id: "103", 
+                                wbs_name: "Phase 3: Finishing", 
+                                wbs_parent_id: "100",
+                                activity_id: "M1", 
+                                activity_name: "Project Completion", 
+                                start_date: "2024-02-15", 
+                                duration: 0, 
+                                progress: 0, 
+                                type: "milestone",
+                                rollup: true
+                            }
+                        ];
+                        
+                        const ganttTasks = processGanttData(sampleData);
+                        renderGantt(ganttTasks);
+                        
+                        // Auto-expand after data load
+                        setTimeout(expandAll, 100);
+                    });
+            }
+
+            // --- Event Handlers ---
+            document.getElementById("expand-all-btn").addEventListener("click", expandAll);
+            document.getElementById("collapse-all-btn").addEventListener("click", collapseAll);
+            document.getElementById("refresh-data-btn").addEventListener("click", loadGanttData);
+
+            // Initial data load
+            loadGanttData();
+            
+            // Ensure Gantt chart resizes with container
+            window.addEventListener("resize", function() {
+                if (gantt.$container) {
+                    gantt.render();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
